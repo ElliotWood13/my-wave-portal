@@ -1,4 +1,4 @@
-# Deploying locally (don't really need to do this)
+# Deploying locally
 
 npx hardhat node
 
