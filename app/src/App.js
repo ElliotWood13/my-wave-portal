@@ -40,9 +40,8 @@ const findMetaMaskAccount = async () => {
 
 const App = () => {
   const [currentAccount, setCurrentAccount] = useState("");
-  const contractAddress = "0x957fe7381be45A31967F1EcfAc6Ff001D8AF8D6c";
+  const contractAddress = "0xb4b4EF226C186Aa5eaa4Ec77E869659214fbCd8d";
   const contractABI = abi.abi;
-
   const connectWallet = async () => {
     try {
       const ethereum = getEthereumObject();
@@ -98,10 +97,12 @@ const App = () => {
   };
 
   useEffect(() => {
-    const account = findMetaMaskAccount();
-    if (account !== null) {
-      setCurrentAccount(account);
-    }
+    findMetaMaskAccount().then((account) => {
+      console.log({ account });
+      if (account !== null) {
+        setCurrentAccount(account);
+      }
+    });
   }, []);
 
   return (
