@@ -1,8 +1,10 @@
 # Getting Started
 
+# New to the repo?
+
 ## Step 1: Create hardhat.config.js
 
-If you have just.
+If you have just cloned the repo..
 Run npx hardhat run scripts/run.js
 Create blank hardhat config and follow guidance here: https://buildspace.so/p/build-solidity-web3-app/lessons/deploy-smart-contract-to-testnet
 
@@ -10,7 +12,7 @@ Create blank hardhat config and follow guidance here: https://buildspace.so/p/bu
 
 npx hardhat run scripts/run.js
 
-# Step 3: Run deploy.js on the Goerli network
+## Step 3: Run deploy.js on the Goerli network
 
 npx hardhat run scripts/deploy.js --network goerli
 

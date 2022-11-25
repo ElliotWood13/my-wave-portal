@@ -1,10 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { ethers } from "ethers";
 import abi from "./utils/WavePortal.json";
 import "./App.css";
-
-const getEthereumObject = () => window.ethereum;
-
+import { getEthereumObject } from "./utils/getEthereumObject";
 /*
  * This function returns the first linked account found.
  * If there is no account linked, it will return null.
@@ -40,8 +38,12 @@ const findMetaMaskAccount = async () => {
 
 const App = () => {
   const [currentAccount, setCurrentAccount] = useState("");
+  const [waveContract, setWaveContract] = useState();
+  const [count, setCount] = useState(0);
+
   const contractAddress = "0xb4b4EF226C186Aa5eaa4Ec77E869659214fbCd8d";
   const contractABI = abi.abi;
+
   const connectWallet = async () => {
     try {
       const ethereum = getEthereumObject();
@@ -63,47 +65,54 @@ const App = () => {
 
   const wave = async () => {
     try {
-      const { ethereum } = window;
+      const waveTxn = await waveContract.wave();
+      console.log("Mining...", waveTxn.hash);
 
-      if (ethereum) {
-        const provider = new ethers.providers.Web3Provider(ethereum);
-        const signer = provider.getSigner();
-        const wavePortalContract = new ethers.Contract(
-          contractAddress,
-          contractABI,
-          signer
-        );
+      await waveTxn.wait();
+      console.log("Mined -- ", waveTxn.hash);
 
-        let count = await wavePortalContract.getTotalWaves();
-        console.log("Retrieved total wave count...", count.toNumber());
-
-        /*
-         * Execute the actual wave from your smart contract
-         */
-        const waveTxn = await wavePortalContract.wave();
-        console.log("Mining...", waveTxn.hash);
-
-        await waveTxn.wait();
-        console.log("Mined -- ", waveTxn.hash);
-
-        count = await wavePortalContract.getTotalWaves();
-        console.log("Retrieved total wave count...", count.toNumber());
-      } else {
-        console.log("Ethereum object doesn't exist!");
-      }
+      let countHex = await waveContract.getTotalWaves();
+      setCount(Number(countHex));
     } catch (error) {
       console.log(error);
     }
   };
 
+  const publishContract = useCallback(async () => {
+    const { ethereum } = window;
+
+    if (ethereum) {
+      const provider = new ethers.providers.Web3Provider(ethereum);
+      const signer = provider.getSigner();
+      const wavePortalContract = new ethers.Contract(
+        contractAddress,
+        contractABI,
+        signer
+      );
+      setWaveContract(wavePortalContract);
+    }
+  }, [contractABI]);
+
+  const getWaveCount = useCallback(async () => {
+    if (waveContract) {
+      const hexCount = await waveContract.getTotalWaves();
+      setCount(Number(hexCount));
+    }
+  }, [waveContract]);
+
   useEffect(() => {
+    publishContract();
+
     findMetaMaskAccount().then((account) => {
-      console.log({ account });
       if (account !== null) {
         setCurrentAccount(account);
       }
     });
-  }, []);
+  }, [publishContract]);
+
+  useEffect(() => {
+    getWaveCount();
+  }, [getWaveCount]);
 
   return (
     <div className="mainContainer">
@@ -117,6 +126,8 @@ const App = () => {
         <button className="waveButton" onClick={wave}>
           Wave at Me
         </button>
+
+        <p>Count: {count}</p>
 
         {/*
          * If there is no currentAccount render this button
