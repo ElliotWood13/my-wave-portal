@@ -24,7 +24,7 @@ cd app, npm i
 
 ## Step 2: Start app
 
-inside app, npm start
+cd app, npm start
 
 TODO:
 // Make sure you are connected to the Goerli network (otherwise app doesn't)

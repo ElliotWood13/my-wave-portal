@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import abi from "./utils/WavePortal.json";
 import "./App.css";
@@ -78,7 +78,7 @@ const App = () => {
     }
   };
 
-  const publishContract = useCallback(async () => {
+  useEffect(() => {
     const { ethereum } = window;
 
     if (ethereum) {
@@ -91,28 +91,24 @@ const App = () => {
       );
       setWaveContract(wavePortalContract);
     }
-  }, [contractABI]);
-
-  const getWaveCount = useCallback(async () => {
-    if (waveContract) {
-      const hexCount = await waveContract.getTotalWaves();
-      setCount(Number(hexCount));
-    }
-  }, [waveContract]);
-
-  useEffect(() => {
-    publishContract();
 
     findMetaMaskAccount().then((account) => {
       if (account !== null) {
         setCurrentAccount(account);
       }
     });
-  }, [publishContract]);
+  }, [contractABI]);
 
   useEffect(() => {
+    const getWaveCount = async () => {
+      if (waveContract) {
+        const hexCount = await waveContract.getTotalWaves();
+        setCount(Number(hexCount));
+      }
+    };
+
     getWaveCount();
-  }, [getWaveCount]);
+  }, [waveContract]);
 
   return (
     <div className="mainContainer">
