@@ -27,6 +27,7 @@ cd app, npm i
 cd app, npm start
 
 TODO:
+// Add to readme how to get more test eth
 // Make sure you are connected to the Goerli network (otherwise app doesn't)
 // Make wave count public / exist on chain - https://buildspace.so/p/build-solidity-web3-app/lessons/storing-messages-from-users-on-blockchain
 // Make contract redeployable after making wave count public

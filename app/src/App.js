@@ -42,7 +42,7 @@ const App = () => {
   const [count, setCount] = useState(0);
   const [allWaves, setAllWaves] = useState([]);
 
-  const contractAddress = "0x6Ea8b66ddFe660E508f93202cb86D2a9F8bBdF1b";
+  const contractAddress = "0x5f1628127d9A6545Ef69E6C54B64500A272281df";
   const contractABI = abi.abi;
 
   const connectWallet = async () => {
@@ -113,8 +113,9 @@ const App = () => {
 
   useEffect(() => {
     const getAllWaves = async () => {
+      const { ethereum } = window;
+
       try {
-        const { ethereum } = window;
         if (ethereum) {
           const provider = new ethers.providers.Web3Provider(ethereum);
           const signer = provider.getSigner();
@@ -123,27 +124,16 @@ const App = () => {
             contractABI,
             signer
           );
-          /*
-           * Call the getAllWaves method from your Smart Contract
-           */
           const waves = await wavePortalContract.getAllWaves();
 
-          /*
-           * We only need address, timestamp, and message in our UI so let's
-           * pick those out
-           */
-          let wavesCleaned = [];
-          waves.forEach((wave) => {
-            wavesCleaned.push({
+          const wavesCleaned = waves.map((wave) => {
+            return {
               address: wave.waver,
               timestamp: new Date(wave.timestamp * 1000),
               message: wave.message,
-            });
+            };
           });
 
-          /*
-           * Store our data in React State
-           */
           setAllWaves(wavesCleaned);
         } else {
           console.log("Ethereum object doesn't exist!");
@@ -153,6 +143,43 @@ const App = () => {
       }
     };
     getAllWaves();
+  }, [contractABI]);
+
+  /**
+   * Listen in for emitter events!
+   */
+  useEffect(() => {
+    let wavePortalContract;
+
+    const onNewWave = (from, timestamp, message) => {
+      console.log("NewWave", from, timestamp, message);
+      setAllWaves((prevState) => [
+        ...prevState,
+        {
+          address: from,
+          timestamp: new Date(timestamp * 1000),
+          message: message,
+        },
+      ]);
+    };
+
+    if (window.ethereum) {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+
+      wavePortalContract = new ethers.Contract(
+        contractAddress,
+        contractABI,
+        signer
+      );
+      wavePortalContract.on("NewWave", onNewWave);
+    }
+
+    return () => {
+      if (wavePortalContract) {
+        wavePortalContract.off("NewWave", onNewWave);
+      }
+    };
   }, [contractABI]);
 
   return (
@@ -183,13 +210,6 @@ const App = () => {
               <div>Address: {wave.address}</div>
               <div>Time: {wave.timestamp.toString()}</div>
               <div>Message: {wave.message}</div>
-              <a
-                href={`https://goerli.etherscan.io/tx/${wave.address}`}
-                target="_blank"
-                rel="noreferrer"
-              >
-                Etherscan Link
-              </a>
             </div>
           );
         })}
